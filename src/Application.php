@@ -10,12 +10,11 @@ namespace Chatbox\Rumic;
 
 use Laravel\Lumen\Application as Lumen;
 use Dotenv;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
 
 /**
- * TODO
- *
- * base dir 関連
- *
  * Class Application
  * @package Chatbox\Rumic
  *
@@ -48,34 +47,93 @@ class Application extends Lumen{
 // $app->register('App\Providers\AppServiceProvider');
     }
 
-    public function configure($config=[]){
-        $methods = ["bind","middleware","routeMiddelware","register"];
+    public function loadConfiguration($config=[]){
+        $methods = [
+            "implements",
+            "middlewares",
+            "routeMiddelwares",
+            "providers"
+        ];
 
-        foreach($methods as $method){
-            if(isset($config[$method])){
-                if(is_array($config[$method])){
-                    foreach($config[$method] as $params){
-//                        var_dump($method,$params);
-                        if(!is_array($params) || count($params) === 1){
-                            call_user_func([$this,$method],$params);
-                        }else{
-                            call_user_func_array([$this,$method],$params);
-                        }
-                    }
-                }else{
-                    throw new \DomainException("each rumic configuration must be array");
-                }
+        foreach($methods as $entry => $method){
+            if(is_numeric($entry)){
+                $entry = $method;
+                $method = "configurate".ucfirst($method);
+            }
+            if(isset($config[$entry])){
+                $this->{$method}($config[$entry]);
             }
         }
     }
 
-    protected function registerImplements(array $config){
+    #region core setter
+    /**
+     * @param $abstract
+     * @param $method
+     */
+    public function addAvailableBindgins($abstract,$method)
+    {
+        $this->availableBindings[$abstract] = $method;
+    }
+
+    /**
+     * @param string $basePath
+     */
+    public function setBasePath($basePath)
+    {
+        $this->basePath = $basePath;
+    }
+
+    /**
+     * @param string $storagePath
+     */
+    public function setStoragePath($storagePath)
+    {
+        $this->storagePath = $storagePath;
+    }
+
+    /**
+     * @param string $configPath
+     */
+    public function setConfigPath($configPath)
+    {
+        $this->configPath = $configPath;
+    }
+
+    /**
+     * @param string $resourcePath
+     */
+    public function setResourcePath($resourcePath)
+    {
+        $this->resourcePath = $resourcePath;
+    }
+
+    #endregion
+
+    # region implements系
+
+    protected function configurateImplements(array $config){
         foreach($config as $value){
             $value = $value + [null,null,true];
             list($abstract,$concrete,$shared) = $value;
             $this->bind($abstract,$concrete,$shared);
         }
     }
+
+    protected function configurateMiddlewares(array $config){
+        $this->middleware($config);
+    }
+
+    protected function configurateRouteMiddlewares(array $config){
+        $this->routeMiddleware($config);
+    }
+
+    protected function configurateProviders(array $config){
+        foreach($config as $value){
+            $this->register($value);//lumenのregisterは第二/第三引数使ってない。
+        }
+    }
+    # endregion
 
     protected function addRoute($method, $uri, $action)
     {
@@ -88,5 +146,12 @@ class Application extends Lumen{
 
     public function loadEnv($dir){
         Dotenv::load($dir);
+    }
+
+    public function artisan(){
+        $kernel = $this->make(
+            'Illuminate\Contracts\Console\Kernel'
+        );
+        exit($kernel->handle(new ArgvInput, new ConsoleOutput));
     }
 }
