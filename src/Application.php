@@ -29,7 +29,6 @@ class Application extends Lumen{
 
     protected $baseUri = null;
 
-
     public function loadConfiguration($config=[]){
         $methods = [
             "implements",
@@ -130,7 +129,7 @@ class Application extends Lumen{
      * @throws \Exception
      */
     public function controller($name,$controller){
-        is_string($controller) && ($controller = new $controller);
+        is_string($controller) && ($controller = $this->make($controller));
 
         if($controller instanceof ControllerInterface){
             $cc = new ControllerCollection($name);
@@ -167,7 +166,6 @@ class Application extends Lumen{
         return $path;
     }
 
-
     /**
      * デフォルトのログハンドラを上書き
      * @return void
@@ -179,8 +177,6 @@ class Application extends Lumen{
 //            return new Logger('lumen', [$this->getMonologHandler()]);
         });
     }
-
-
 
     /**
      * Env読み込みのエイリアス
