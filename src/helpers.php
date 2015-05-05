@@ -12,7 +12,7 @@ if (! function_exists('db')) {
      *
      * @param  string  $make
      * @param  array   $parameters
-     * @return mixed|\Laravel\Lumen\Application
+     * @return \Illuminate\Database\DatabaseManager
      */
     function db($make = null, $parameters = [])
     {

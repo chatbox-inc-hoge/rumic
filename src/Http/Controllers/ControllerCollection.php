@@ -23,11 +23,16 @@ class ControllerCollection {
 
     protected $route = [];
 
+    protected $controllerName;
+
     function __construct($name)
     {
         $this->name = $name;
     }
 
+    public function setControllerName($controllerName){
+        $this->controllerName = $controllerName;
+    }
 
     public function get($path,$route){
         $this->addRoute("GET",$path,$route);
@@ -37,7 +42,9 @@ class ControllerCollection {
     }
 
     protected function addRoute($method,$path,$callableRoute,$keepArray=false){
-        if(!$callableRoute instanceof Closure){
+        if($this->controllerName && is_string($callableRoute)){
+            $closureRoute = "{$this->controllerName}@$callableRoute";
+        }else if(!$callableRoute instanceof Closure){
             $closureRoute = function()use($callableRoute){
                 return call_user_func_array($callableRoute,func_get_args());
             };
