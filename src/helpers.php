@@ -6,6 +6,8 @@
  * Time: 19:48
  */
 
+use Illuminate\Container\Container;
+
 if (! function_exists('db')) {
     /**
      * Get the available container instance.
